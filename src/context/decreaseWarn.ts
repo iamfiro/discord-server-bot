@@ -1,21 +1,8 @@
 import { ActionRowBuilder, ApplicationCommandType, ContextMenuCommandBuilder, ContextMenuCommandInteraction, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import handleSanctionCommandRequest from "../handler/sanctions";
 
 async function handler(target: string, interaction: ContextMenuCommandInteraction) {
-    const modal = new ModalBuilder()
-        .setCustomId(`decreaseWarn-${process.env.WARN_LOG_CHANNEL}-${target}`)
-        .setTitle("경고 차감")
-    
-    const reason = new TextInputBuilder()
-        .setCustomId('input-reason')
-        .setLabel("사유")
-        .setPlaceholder("사유를 입력해주세요.")
-        .setStyle(TextInputStyle.Short);
-    
-    const ActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(reason);
-
-    modal.addComponents(ActionRow);
-
-    await interaction.showModal(modal)
+    handleSanctionCommandRequest({ interaction, target, type: 'decreaseWarn', channelId: process.env.WARN_LOG_CHANNEL || '', title: '경고 차감' })
 }
 
 export default {
