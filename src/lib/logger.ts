@@ -1,27 +1,25 @@
 import chalk from "chalk";
 
 export default class Logger {
-    // 기본 로그
-    debug(message: string): void {
-        const returnMessage = `${chalk.blueBright('[DEBUG]')} ${message} ${chalk.gray(new Date().toLocaleTimeString())}`;
-        return console.log(returnMessage);
+    private log(level: string, message: any, color: (text: string) => string): void {
+        const prefix = `[${level}]`;
+        const timestamp = chalk.gray(new Date().toLocaleTimeString());
+        console.log(`${color(prefix)} ${message} ${timestamp}`);
     }
 
-    // 에러 로그
-    error(message: string): void {
-        const returnMessage = `${chalk.redBright('[ERROR]')} ${message} ${chalk.gray(new Date().toLocaleTimeString())}`;
-        return console.log(returnMessage);
+    debug(message: any): void {
+        this.log('DEBUG', message, chalk.blueBright);
     }
 
-    // 경고 로그
-    warn(message: string): void {
-        const returnMessage = `${chalk.yellowBright('[WARN]')} ${message} ${chalk.gray(new Date().toLocaleTimeString())}`;
-        return console.log(returnMessage);
+    error(message: any): void {
+        this.log('ERROR', message, chalk.redBright);
     }
 
-    // 정보 로그
-    info(message: string): void {
-        const returnMessage = `${chalk.greenBright('[INFO]')} ${message} ${chalk.gray(new Date().toLocaleTimeString())}`;
-        return console.log(returnMessage);
+    warn(message: any): void {
+        this.log('WARN', message, chalk.yellowBright);
+    }
+
+    info(message: any): void {
+        this.log('INFO', message, chalk.greenBright);
     }
 }
