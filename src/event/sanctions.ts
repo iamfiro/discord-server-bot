@@ -22,7 +22,7 @@ export default async function handleSanctions(interaction: ModalSubmitInteractio
     const targetUser = await client.users.fetch(targetId);
 
     const Embed = new EmbedBuilder()
-        .setTitle("🚨 재제 적용")
+        .setTitle("🚨 제재 적용")
         .setFields([
             {
                 name: "유형",
