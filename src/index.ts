@@ -8,6 +8,7 @@ import ban from './context/ban';
 import decreaseWarn from './context/decreaseWarn';
 import increaseWarn from './context/increaseWarn';
 import handleSanctions from './event/sanctions';
+import deleteMessage from './commands/manage/deleteMessage';
 
 const logger = new Logger();
 
@@ -23,6 +24,7 @@ client.on('ready', async () => {
         body: [
             // Slash Command
             ping.info.toJSON(),
+            deleteMessage.info.toJSON(),
             // Context Menu
             kick.info.toJSON(),
             ban.info.toJSON(),
@@ -39,6 +41,7 @@ client.on('interactionCreate', async interaction => {
     if(interaction.isChatInputCommand()) {
         switch (interaction.commandName) {
             case 'ping': ping.handler(interaction); break;
+            case '청소': deleteMessage.handle(interaction); break;
         }
     }
 
