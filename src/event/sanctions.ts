@@ -4,7 +4,12 @@ import Logger from "../lib/logger";
 
 const logger = new Logger();
 
-function TypeToName(type: string) {
+/**
+ * 주어진 제재 유형에 대한 이름을 반환합니다.
+ * @param type 제재 유형 (kick, ban, increaseWarn, decreaseWarn)
+ * @returns 제재 유형의 이름
+ */
+function TypeToName(type: string): string {
     switch (type) {
         case 'kick':
             return '서버 추방';
@@ -19,12 +24,16 @@ function TypeToName(type: string) {
     }
 }
 
-export default async function handleSanctions(interaction: ModalSubmitInteraction) {
+/**
+ * 제재를 처리하는 함수입니다.
+ * @param interaction ModalSubmitInteraction 객체
+ */
+export default async function handleSanctions(interaction: ModalSubmitInteraction): Promise<void> {
     const reason: string = interaction.fields.getTextInputValue("input-reason");
     const [type, channelId, targetId] = interaction.customId.split('-');
     const targetUser = await client.users.fetch(targetId);
 
-    const Embed = new EmbedBuilder()
+    const embed = new EmbedBuilder()
         .setTitle("🚨 제재 적용")
         .setFields([
             {
@@ -33,7 +42,7 @@ export default async function handleSanctions(interaction: ModalSubmitInteractio
             },
             {
                 name: "대상",
-                value: `${targetUser.displayName}(${targetId})`,
+                value: `${targetUser.tag} (${targetId})`,
             },
             {
                 name: "사유",
@@ -43,60 +52,70 @@ export default async function handleSanctions(interaction: ModalSubmitInteractio
         .setThumbnail(targetUser.displayAvatarURL())
         .setTimestamp()
         .setColor(Colors.Red);
-    console.log(type)
-    // 기능 구현
-    switch (type) {
-        case 'kick':
-            // Kick the user
-            const guild = client.guilds.cache.get(interaction.guildId || '');
-            if (guild) {
-                const member = guild.members.cache.get(targetId);
-                if (member) {
-                    member.kick(reason).then(() => {
-                        interaction.reply({ embeds: [
-                            new EmbedBuilder()
-                                .setTitle("🚨 서버 추방")
-                                .setColor(Colors.Red)
-                                .setDescription(`${userMention(targetId)} 님을 서버에서 추방했습니다.`)
-                        ], ephemeral: true });
-                    }).catch((error) => {
-                        logger.error(`Error kicking user: ${error}`);
-                    });
-                }
-            }
-            break;
-        case 'ban':
-            // Ban the user
-            const guild2 = client.guilds.cache.get(interaction.guildId || '');
-            if (guild2) {
-                const member = guild2.members.cache.get(targetId);
-                if (member) {
-                    member.ban({ reason }).then(() => {
-                        interaction.reply({ embeds: [
-                            new EmbedBuilder()
-                                .setTitle("🚨 서버 차단")
-                                .setColor(Colors.Red)
-                                .setDescription(`${userMention(targetId)} 님을 서버에서 차단했습니다.`)
-                        ], ephemeral: true });
-                    }).catch((error) => {
-                        logger.error(`Error banning user: ${error}`);
-                    });
-                }
-            }
-            break;
-        case 'increaseWarn':
-            // Increase the user's warn count
-            interaction.reply({ embeds: [
-                new EmbedBuilder()
-                    .setTitle("🚨 경고 추가")
-                    .setColor(Colors.Red)
-                    .setDescription(`${userMention(targetId)} 님에게 1회 경고를 추가했습니다.`)
-                    .setFooter({ text: '경고가 5회 이상일 경우 서버에서 추방될 수 있습니다.' })
-            ] });
-            break;
-        
+
+    const guild = client.guilds.cache.get(interaction.guildId || '');
+    if (!guild) {
+        logger.error(`Guild not found: ${interaction.guildId}`);
+        return;
+    }
+
+    const member = guild.members.cache.get(targetId);
+    if (!member) {
+        logger.error(`Member not found: ${targetId}`);
+        return;
+    }
+
+    try {
+        switch (type) {
+            case 'kick':
+                await member.kick(reason);
+                interaction.reply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle("🚨 서버 추방")
+                            .setColor(Colors.Red)
+                            .setDescription(`${userMention(targetId)} 님을 서버에서 추방했습니다.`)
+                    ],
+                    ephemeral: true
+                });
+                break;
+            case 'ban':
+                await member.ban({ reason });
+                interaction.reply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle("🚨 서버 차단")
+                            .setColor(Colors.Red)
+                            .setDescription(`${userMention(targetId)} 님을 서버에서 차단했습니다.`)
+                    ],
+                    ephemeral: true
+                });
+                break;
+            case 'increaseWarn':
+                // 경고 추가 처리 로직 (예: 데이터베이스 업데이트) 추가
+                interaction.reply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setTitle("🚨 경고 추가")
+                            .setColor(Colors.Red)
+                            .setDescription(`${userMention(targetId)} 님에게 1회 경고를 추가했습니다.`)
+                            .setFooter({ text: '경고가 5회 이상일 경우 서버에서 추방될 수 있습니다.' })
+                    ]
+                });
+                break;
+            default:
+                logger.error(`Unknown sanction type: ${type}`);
+                return;
+        }
+    } catch (error) {
+        logger.error(`Error handling sanction (${type}): ${error}`);
     }
 
     // 로그 전송
-    (client.channels.cache.get(channelId) as TextChannel).send({ embeds: [Embed] })
+    const logChannel = client.channels.cache.get(channelId) as TextChannel;
+    if (logChannel) {
+        logChannel.send({ embeds: [embed] });
+    } else {
+        logger.error(`Log channel not found: ${channelId}`);
+    }
 }
