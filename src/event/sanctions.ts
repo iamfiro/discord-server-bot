@@ -17,9 +17,6 @@ function TypeToName(type: string) {
 }
 
 export default async function handleSanctions(interaction: ModalSubmitInteraction) {
-    console.log(
-        'asd'
-    )
     const reason = interaction.fields.getTextInputValue("input-reason");
     const [type, channelId, targetId] = interaction.customId.split('-');
     const targetUser = await client.users.fetch(targetId);
