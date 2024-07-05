@@ -1,5 +1,8 @@
 import { Colors, EmbedBuilder, ModalSubmitInteraction, TextChannel, userMention } from "discord.js";
 import { client } from "../lib/bot";
+import Logger from "../lib/logger";
+
+const logger = new Logger();
 
 function TypeToName(type: string) {
     switch (type) {
@@ -17,7 +20,7 @@ function TypeToName(type: string) {
 }
 
 export default async function handleSanctions(interaction: ModalSubmitInteraction) {
-    const reason = interaction.fields.getTextInputValue("input-reason");
+    const reason: string = interaction.fields.getTextInputValue("input-reason");
     const [type, channelId, targetId] = interaction.customId.split('-');
     const targetUser = await client.users.fetch(targetId);
 
@@ -30,7 +33,7 @@ export default async function handleSanctions(interaction: ModalSubmitInteractio
             },
             {
                 name: "대상",
-                value: `${targetUser.globalName}(${targetId})`,
+                value: `${targetUser.displayName}(${targetId})`,
             },
             {
                 name: "사유",
@@ -40,11 +43,46 @@ export default async function handleSanctions(interaction: ModalSubmitInteractio
         .setThumbnail(targetUser.displayAvatarURL())
         .setTimestamp()
         .setColor(Colors.Red);
-
+    console.log(type)
     // 기능 구현
     switch (type) {
         case 'kick':
             // Kick the user
+            const guild = client.guilds.cache.get(interaction.guildId || '');
+            if (guild) {
+                const member = guild.members.cache.get(targetId);
+                if (member) {
+                    member.kick(reason).then(() => {
+                        interaction.reply({ embeds: [
+                            new EmbedBuilder()
+                                .setTitle("🚨 서버 추방")
+                                .setColor(Colors.Red)
+                                .setDescription(`${userMention(targetId)} 님을 서버에서 추방했습니다.`)
+                        ], ephemeral: true });
+                    }).catch((error) => {
+                        logger.error(`Error kicking user: ${error}`);
+                    });
+                }
+            }
+            break;
+        case 'ban':
+            // Ban the user
+            const guild2 = client.guilds.cache.get(interaction.guildId || '');
+            if (guild2) {
+                const member = guild2.members.cache.get(targetId);
+                if (member) {
+                    member.ban({ reason }).then(() => {
+                        interaction.reply({ embeds: [
+                            new EmbedBuilder()
+                                .setTitle("🚨 서버 차단")
+                                .setColor(Colors.Red)
+                                .setDescription(`${userMention(targetId)} 님을 서버에서 차단했습니다.`)
+                        ], ephemeral: true });
+                    }).catch((error) => {
+                        logger.error(`Error banning user: ${error}`);
+                    });
+                }
+            }
             break;
         case 'increaseWarn':
             // Increase the user's warn count
