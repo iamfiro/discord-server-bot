@@ -1,6 +1,7 @@
 import { Colors, EmbedBuilder, ModalSubmitInteraction, TextChannel, userMention } from "discord.js";
 import { client } from "../lib/bot";
 import Logger from "../lib/logger";
+import prisma from "../lib/prisma";
 
 const logger = new Logger();
 
@@ -93,14 +94,25 @@ export default async function handleSanctions(interaction: ModalSubmitInteractio
                 break;
             case 'increaseWarn':
                 // 경고 추가 처리 로직 (예: 데이터베이스 업데이트) 추가
-                interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle("🚨 경고 추가")
-                            .setColor(Colors.Red)
-                            .setDescription(`${userMention(targetId)} 님에게 1회 경고를 추가했습니다.`)
-                            .setFooter({ text: '경고가 5회 이상일 경우 서버에서 추방될 수 있습니다.' })
-                    ]
+                prisma.userWarn.create({
+                    data: {
+                        userId: targetId,
+                        reasons: reason,
+                    }
+                }).then(() => {
+                    logger.info(`Added a warning to ${targetId}`);
+
+                    interaction.reply({
+                        embeds: [
+                            new EmbedBuilder()
+                                .setTitle("🚨 경고 추가")
+                                .setColor(Colors.Red)
+                                .setDescription(`${userMention(targetId)} 님에게 1회 경고를 추가했습니다.`)
+                                .setFooter({ text: '경고가 5회 이상일 경우 서버에서 추방될 수 있습니다.' })
+                        ]
+                    });
+                }).catch((error) => {
+                    logger.error(`Error adding a warning to ${targetId}: ${error}`);
                 });
                 break;
             default:
