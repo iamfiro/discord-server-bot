@@ -10,6 +10,7 @@ import increaseWarn from './context/increaseWarn';
 import handleSanctions from './event/afterSanctionModal';
 import deleteMessage from './commands/manage/deleteMessage';
 import { ModalHandlerListType } from './types/interactionEvent';
+import pushModal from './commands/manage/pushModal';
 
 // Logger instance 생성
 const logger = new Logger();
@@ -33,6 +34,7 @@ async function registerCommands() {
                 // Slash Command
                 ping.info.toJSON(),
                 deleteMessage.info.toJSON(),
+                pushModal.info.toJSON(),
                 // Context Menu
                 kick.info.toJSON(),
                 ban.info.toJSON(),
@@ -75,6 +77,9 @@ const handleChatInputCommand = (interaction: ChatInputCommandInteraction) => {
             break;
         case '청소':
             deleteMessage.handle(interaction);
+            break;
+        case '모달세팅':
+            pushModal.handle(interaction);
             break;
     }
 };
