@@ -11,6 +11,7 @@ import handleSanctions from './event/afterSanctionModal';
 import deleteMessage from './commands/manage/deleteMessage';
 import { ModalHandlerListType } from './types/interactionEvent';
 import pushModal from './commands/manage/pushModal';
+import chatXpIncrement from './event/chatXpIncrement';
 
 // Logger instance 생성
 const logger = new Logger();
@@ -65,6 +66,13 @@ client.on('interactionCreate', async (interaction) => {
         handleModalSubmit(interaction);
     }
 });
+
+/**
+ * MessageCreate 이벤트 핸들러
+ */
+client.on('messageCreate', async (message) => {
+    chatXpIncrement.handle(message);
+})
 
 /**
  * 채팅 입력 명령어 처리 함수
