@@ -11,11 +11,8 @@ import handleSanctions from './event/afterSanctionModal';
 import deleteMessage from './commands/manage/deleteMessage';
 import { ModalHandlerListType } from './types/interactionEvent';
 import pushModal from './commands/manage/pushModal';
-<<<<<<< HEAD
 import clickedWelcomButton from './event/clickedWelcomButton';
-=======
 import chatXpIncrement from './event/chatXpIncrement';
->>>>>>> origin/main
 
 // Logger instance 생성
 const logger = new Logger();
