@@ -18,6 +18,7 @@ model User {
   userName    String   @default("")
   xp          BigInt   @default(0)          // Moved from UserLevel model
   warnings    UserWarn[]
+  warningsCount Int     @default(0)          // Moved from UserLevel model
   lastActivity DateTime @default(now())
   createdAt   DateTime @default(now())
 }
