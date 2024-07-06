@@ -14,23 +14,18 @@ datasource db {
 }
 
 model User {
-  userId String @unique
-  userName String @default("")
-  UserLevel UserLevel?
-  UserWarn UserWarn?
+  userId      String   @id @default(uuid()) // Use UUIDs for better scalability
+  userName    String   @default("")
+  xp          BigInt   @default(0)          // Moved from UserLevel model
+  warnings    UserWarn[]
   lastActivity DateTime @default(now())
-  createdAt DateTime @default(now())
+  createdAt   DateTime @default(now())
 }
 
 model UserWarn {
-  userId String @unique
-  user User @relation(fields: [userId], references: [userId])
-  resons String
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [userId])
+  reasons   String   // Fixed typo from 'resons'
   createdAt DateTime @default(now())
-}
-
-model UserLevel {
-  xp BigInt @default(0)
-  userId String @unique
-  user User @relation(fields: [userId], references: [userId])
 }
