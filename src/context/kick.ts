@@ -3,7 +3,7 @@ import {
     ContextMenuCommandBuilder, 
     ContextMenuCommandInteraction 
 } from "discord.js";
-import handleSanctionCommandRequest from "../handler/sanctions";
+import handleSanctionCommandRequest from "../handler/requestSanctionModal";
 
 /**
  * 서버 추방 명령어를 처리하는 함수입니다.
