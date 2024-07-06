@@ -18,3 +18,8 @@ model UserWarn {
   resons String
   createdAt DateTime @default(now())
 }
+
+model UserLevel {
+  userId String @unique
+  xp BigInt @default(0)
+}
