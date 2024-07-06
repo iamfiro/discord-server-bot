@@ -12,3 +12,9 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model UserWarn {
+  userId String @unique
+  resons String
+  createdAt DateTime @default(now())
+}
