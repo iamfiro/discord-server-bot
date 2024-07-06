@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { ChatInputCommandInteraction, Client, ContextMenuCommandInteraction, IntentsBitField, ModalSubmitInteraction, Routes } from 'discord.js';
+import { ButtonInteraction, ChatInputCommandInteraction, Client, ContextMenuCommandInteraction, IntentsBitField, ModalSubmitInteraction, Routes } from 'discord.js';
 import Logger from "./lib/logger";
 import { client, rest } from './lib/bot';
 import ping from './commands/ping';
@@ -11,6 +11,7 @@ import handleSanctions from './event/afterSanctionModal';
 import deleteMessage from './commands/manage/deleteMessage';
 import { ModalHandlerListType } from './types/interactionEvent';
 import pushModal from './commands/manage/pushModal';
+import clickedWelcomButton from './event/clickedWelcomButton';
 
 // Logger instance 생성
 const logger = new Logger();
@@ -63,6 +64,8 @@ client.on('interactionCreate', async (interaction) => {
         handleContextMenuCommand(interaction);
     } else if (interaction.isModalSubmit()) {
         handleModalSubmit(interaction);
+    } else if(interaction.isButton()) {
+        handleButton(interaction);
     }
 });
 
@@ -83,6 +86,18 @@ const handleChatInputCommand = (interaction: ChatInputCommandInteraction) => {
             break;
     }
 };
+
+/**
+ * 버튼 이벤트 핸들러
+ * @param {ButtonInteraction} interaction - Discord 버튼 상호작용 객체
+ */
+const handleButton = (interaction: ButtonInteraction) => {
+    switch (interaction.customId) {
+        case 'welcome_button':
+            clickedWelcomButton.handle(interaction);
+            break;
+    }
+}
 
 /**
  * 컨텍스트 메뉴 명령어 처리 함수
