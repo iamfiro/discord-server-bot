@@ -13,13 +13,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  userId String @unique
+  userName String @default("")
+  UserLevel UserLevel?
+  UserWarn UserWarn?
+  lastActivity DateTime @default(now())
+  createdAt DateTime @default(now())
+}
+
 model UserWarn {
   userId String @unique
+  user User @relation(fields: [userId], references: [userId])
   resons String
   createdAt DateTime @default(now())
 }
 
 model UserLevel {
-  userId String @unique
   xp BigInt @default(0)
+  userId String @unique
+  user User @relation(fields: [userId], references: [userId])
 }
