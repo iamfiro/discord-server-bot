@@ -1,16 +1,34 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, ChatInputCommandInteraction, SlashCommandBuilder, TextChannel } from "discord.js";
 import Logger from "../../lib/logger";
+import { EmbedCommandSuccess, EmbedWelcome } from "../../lib/common/embed";
+import { client } from "../../lib/bot";
 
 const logger = new Logger();
 
 async function handle(interaction: ChatInputCommandInteraction) {
     const type = interaction.options.getString("종류");
-    if(!type) logger.error("Push Modal Command Type is not provided");
+    const channel = interaction.options.getChannel("채널");
+    if(!type || !channel) logger.error("Push Modal Command Type is not provided");
 
     switch(type) {
         case "welcome_modal":
-            logger.info("Welcome Modal");
-            break;
+            const embed = EmbedWelcome();
+            const button = new ButtonBuilder()
+                .setCustomId("welcome_button")
+                .setLabel("입장권 발급받기")
+                .setEmoji("🧾")
+                .setStyle(ButtonStyle.Success)
+            const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button);
+
+            (client.channels.cache.get(channel?.id || '') as TextChannel).send({
+                embeds: [embed],
+                components: [row]
+            });
+
+            return interaction.reply({
+                embeds: [EmbedCommandSuccess()],
+                ephemeral: true
+            });
         default:
             logger.error("Unknown Modal Type");
             break;
@@ -32,6 +50,14 @@ export default {
                     value: "welcome_modal"
                 },
             ])
-    ),
+    )
+    .addChannelOption((option) =>
+        option
+            .setName("채널")
+            .setDescription("모달을 전송할 채널을 선택해주세요")
+            .setRequired(true)
+            .addChannelTypes(ChannelType.GuildText)
+    )
+    ,
     handle
 }
