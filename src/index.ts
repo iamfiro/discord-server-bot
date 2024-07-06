@@ -7,7 +7,7 @@ import kick from './context/kick';
 import ban from './context/ban';
 import decreaseWarn from './context/decreaseWarn';
 import increaseWarn from './context/increaseWarn';
-import handleSanctions from './event/sanctions';
+import handleSanctions from './event/afterSanctionModal';
 import deleteMessage from './commands/manage/deleteMessage';
 import { ModalHandlerListType } from './types/interactionEvent';
 
