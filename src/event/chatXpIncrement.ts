@@ -13,7 +13,6 @@ const NOTIFY_CHANNEL_ID: string = process.env.LEVEL_LOG_CHANNEL || ''; // 알림
 async function handle(message: Message) {
     // 봇이 보낸 메시지는 무시합니다.
     if (message.author.bot) return;
-    logger.info(message.author.id)
     try {
         // 사용자 XP를 1 증가시키고, 업데이트된 XP 값을 가져옵니다.
         const user = await prisma.user.update({
