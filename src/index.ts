@@ -13,8 +13,7 @@ import { ModalHandlerListType } from './types/interactionEvent';
 import pushModal from './commands/manage/pushModal';
 import clickedWelcomButton from './event/clickedWelcomButton';
 import chatXpIncrement from './event/chatXpIncrement';
-import handleAfkUser from './handler/handleAfkUser';
-import { CronJob } from 'cron';
+import { handleAfkJob } from './handler/cron';
 
 // Logger instance 생성
 const logger = new Logger();
@@ -148,19 +147,6 @@ const handleModalSubmit = (interaction: ModalSubmitInteraction) => {
         }
     }
 };
-
-/**
- * Schedule a cron job to run the handleAfkUser function every day at midnight
- */
-const handleAfkJob = new CronJob("0 0 * * *", async () => {
-    logger.info('Starting handleAfkUser cron job...');
-    try {
-        await handleAfkUser();
-        logger.info('Completed handleAfkUser cron job.');
-    } catch (error) {
-        logger.error(`Error during handleAfkUser cron job: ${error}`);
-    }
-});
 
 ;(async () => {
     try {
