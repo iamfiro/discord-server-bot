@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { ButtonInteraction, ChatInputCommandInteraction, Client, ContextMenuCommandInteraction, IntentsBitField, ModalSubmitInteraction, Routes } from 'discord.js';
+import { ButtonInteraction, ChatInputCommandInteraction, ContextMenuCommandInteraction, ModalSubmitInteraction, Routes } from 'discord.js';
 import Logger from "./lib/logger";
 import { client, rest } from './lib/bot';
 import ping from './commands/ping';
@@ -13,6 +13,8 @@ import { ModalHandlerListType } from './types/interactionEvent';
 import pushModal from './commands/manage/pushModal';
 import clickedWelcomButton from './event/clickedWelcomButton';
 import chatXpIncrement from './event/chatXpIncrement';
+import handleAfkUser from './handler/handleAfkUser';
+import { CronJob } from 'cron';
 
 // Logger instance 생성
 const logger = new Logger();
@@ -147,9 +149,15 @@ const handleModalSubmit = (interaction: ModalSubmitInteraction) => {
     }
 };
 
+const handleAfkJob = new CronJob("0 0 * * *", async () => {
+    handleAfkUser()
+})
+
 ;(async () => {
     try {
         await client.login(process.env.BOT_TOKEN);
+
+        handleAfkJob.start();
     } catch (error) {
         logger.error(`Login failed: ${error}`);
     }
