@@ -20,6 +20,7 @@ async function handle(message: Message) {
                 userId: message.author.id,
             },
             data: {
+                lastActivity: new Date(),
                 xp: {
                     increment: BigInt(1),
                 },
