@@ -11,7 +11,7 @@ import handleSanctions from './event/afterSanctionModal';
 import deleteMessage from './commands/manage/deleteMessage';
 import { ModalHandlerListType } from './types/interactionEvent';
 import pushModal from './commands/manage/pushModal';
-import clickedWelcomButton from './event/clickedWelcomButton';
+import clickedWelcomButton from './event/clickedWelcomeButton';
 import chatXpIncrement from './event/chatXpIncrement';
 import { handleAfkJob } from './handler/cron';
 import logDeletedMessage from './event/logDeletedMessage';
