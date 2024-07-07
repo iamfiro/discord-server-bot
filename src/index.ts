@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { ButtonInteraction, ChatInputCommandInteraction, ContextMenuCommandInteraction, ModalSubmitInteraction, Routes } from 'discord.js';
+import { ButtonInteraction, ChatInputCommandInteraction, ContextMenuCommandInteraction, Message, ModalSubmitInteraction, Routes } from 'discord.js';
 import Logger from "./lib/logger";
 import { client, rest } from './lib/bot';
 import ping from './commands/ping';
@@ -14,6 +14,7 @@ import pushModal from './commands/manage/pushModal';
 import clickedWelcomButton from './event/clickedWelcomButton';
 import chatXpIncrement from './event/chatXpIncrement';
 import { handleAfkJob } from './handler/cron';
+import logDeletedMessage from './event/logDeletedMessage';
 
 // Logger instance 생성
 const logger = new Logger();
@@ -75,7 +76,15 @@ client.on('interactionCreate', async (interaction) => {
  * MessageCreate 이벤트 핸들러
  */
 client.on('messageCreate', async (message) => {
+    logger.info('messageCreate event');
     chatXpIncrement.handle(message);
+})
+
+/**
+ * MessageDelete event handler
+ */
+client.on('messageDelete', async (message) => {
+    logDeletedMessage.handle(message);  
 })
 
 /**
