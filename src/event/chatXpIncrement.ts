@@ -13,7 +13,7 @@ const NOTIFY_CHANNEL_ID: string = process.env.LEVEL_LOG_CHANNEL || ''; // 알림
 async function handle(message: Message) {
     // 봇이 보낸 메시지는 무시합니다.
     if (message.author.bot) return;
-
+    logger.info(message.author.id)
     try {
         // 사용자 XP를 1 증가시키고, 업데이트된 XP 값을 가져옵니다.
         const user = await prisma.user.update({
@@ -37,7 +37,7 @@ async function handle(message: Message) {
             const channel = message.client.channels.cache.get(NOTIFY_CHANNEL_ID) as TextChannel;
             if (channel) {
                 // 알림 채널에 레벨 업 메시지를 보냅니다.
-                channel.send(`🎉 ${message.author.username} 님이 ${newLevel} 레벨에 도달했습니다!`);
+                channel.send(`🎉 ${message.author.username} 님이 ${newLevel} 레벨로 올랐습니다!`);
             } else {
                 logger.error('알림 채널을 찾을 수 없습니다.');
             }

@@ -1,4 +1,12 @@
-import { Colors, EmbedBuilder, ModalSubmitInteraction, TextChannel, userMention } from "discord.js";
+import {
+    Colors,
+    EmbedBuilder,
+    ModalSubmitInteraction,
+    TextChannel,
+    userMention,
+    GuildMember,
+    ColorResolvable
+} from "discord.js";
 import { client } from "../lib/bot";
 import Logger from "../lib/logger";
 import prisma from "../lib/prisma";
@@ -7,11 +15,11 @@ import { EmbedError } from "../lib/common/embed";
 const logger = new Logger();
 
 /**
- * 주어진 제재 유형에 대한 이름을 반환합니다.
- * @param type 제재 유형 (kick, ban, increaseWarn, decreaseWarn)
- * @returns 제재 유형의 이름
+ * Returns the name of the given sanction type.
+ * @param type Sanction type (kick, ban, increaseWarn, decreaseWarn)
+ * @returns Name of the sanction type
  */
-function TypeToName(type: string): string {
+function typeToName(type: string): string {
     switch (type) {
         case 'kick':
             return '서버 추방';
@@ -27,24 +35,35 @@ function TypeToName(type: string): string {
 }
 
 /**
- * 임베드를 생성하는 유틸리티 함수입니다.
- * @param title 제목
- * @param description 설명
- * @param color 색상
- * @returns EmbedBuilder 인스턴스
+ * Utility function to create an embed.
+ * @param title Title of the embed
+ * @param color Color of the embed
+ * @param description Description of the embed
+ * @param fields Array of field objects
+ * @returns EmbedBuilder instance
  */
-function createEmbed(title: string, description: string, color: any): EmbedBuilder {
-    return new EmbedBuilder()
+function createEmbed(
+    title: string,
+    color: ColorResolvable,
+    description?: string,
+    fields?: { name: string; value: string }[]
+): EmbedBuilder {
+    const embed = new EmbedBuilder()
         .setTitle(title)
-        .setDescription(description)
         .setColor(color)
         .setTimestamp();
+
+    if (description) embed.setDescription(description);
+    if (fields) embed.addFields(fields);
+
+    return embed;
 }
 
 /**
- * 로그를 전송하는 함수입니다.
- * @param channelId 로그 채널 ID
- * @param embed 전송할 EmbedBuilder
+/**
+ * Sends a log to the specified channel.
+ * @param channelId Log channel ID
+ * @param embed EmbedBuilder to send
  */
 async function sendLog(channelId: string, embed: EmbedBuilder): Promise<void> {
     const logChannel = client.channels.cache.get(channelId) as TextChannel;
@@ -56,9 +75,9 @@ async function sendLog(channelId: string, embed: EmbedBuilder): Promise<void> {
 }
 
 /**
- * 경고를 증가시키는 함수입니다.
- * @param targetId 대상 사용자 ID
- * @param reason 사유
+ * Increases a user's warning count.
+ * @param targetId Target user ID
+ * @param reason Reason for the warning
  */
 async function increaseWarning(targetId: string, reason: string): Promise<void> {
     try {
@@ -73,8 +92,8 @@ async function increaseWarning(targetId: string, reason: string): Promise<void> 
 }
 
 /**
- * 경고를 감소시키는 함수입니다.
- * @param targetId 대상 사용자 ID
+ * Decreases a user's warning count.
+ * @param targetId Target user ID
  */
 async function decreaseWarning(targetId: string): Promise<void> {
     try {
@@ -87,8 +106,28 @@ async function decreaseWarning(targetId: string): Promise<void> {
 }
 
 /**
- * 제재를 처리하는 함수입니다.
- * @param interaction ModalSubmitInteraction 객체
+ * Kicks a member from the server.
+ * @param member Target member
+ * @param reason Reason for the kick
+ */
+async function kickMember(member: GuildMember, reason: string): Promise<void> {
+    await member.kick(reason);
+    logger.info(`Kicked ${member.user.tag} from the server`);
+}
+
+/**
+ * Bans a member from the server.
+ * @param member Target member
+ * @param reason Reason for the ban
+ */
+async function banMember(member: GuildMember, reason: string): Promise<void> {
+    await member.ban({ reason });
+    logger.info(`Banned ${member.user.tag} from the server`);
+}
+
+/**
+ * Handles the sanction based on the interaction.
+ * @param interaction ModalSubmitInteraction object
  */
 export default async function handleSanctions(interaction: ModalSubmitInteraction): Promise<void> {
     const reason: string = interaction.fields.getTextInputValue("input-reason");
@@ -97,8 +136,13 @@ export default async function handleSanctions(interaction: ModalSubmitInteractio
 
     const embed = createEmbed(
         "🚨 제재 적용",
-        `유형: ${TypeToName(type)}\n대상: ${targetUser.tag} (${targetId})\n사유: \`\`\`${reason}\`\`\``,
-        Colors.Red
+        Colors.Red,
+        undefined,
+        [
+            { name: "유형", value: typeToName(type) },
+            { name: "대상", value: `${targetUser.tag} (${targetId})` },
+            { name: "사유", value: reason }
+        ]
     ).setThumbnail(targetUser.displayAvatarURL());
 
     const guild = client.guilds.cache.get(interaction.guildId || '');
@@ -116,16 +160,16 @@ export default async function handleSanctions(interaction: ModalSubmitInteractio
     try {
         switch (type) {
             case 'kick':
-                await member.kick(reason);
+                await kickMember(member, reason);
                 interaction.reply({
-                    embeds: [createEmbed("🚨 서버 추방", `${userMention(targetId)} 님을 서버에서 추방했습니다.`, Colors.Red)],
+                    embeds: [createEmbed("🚨 서버 추방", Colors.Red, `${userMention(targetId)} 님을 서버에서 추방했습니다.`)],
                     ephemeral: true
                 });
                 break;
             case 'ban':
-                await member.ban({ reason });
+                await banMember(member, reason);
                 interaction.reply({
-                    embeds: [createEmbed("🚨 서버 차단", `${userMention(targetId)} 님을 서버에서 차단했습니다.`, Colors.Red)],
+                    embeds: [createEmbed("🚨 서버 차단", Colors.Red, `${userMention(targetId)} 님을 서버에서 차단했습니다.`)],
                     ephemeral: true
                 });
                 break;
@@ -135,16 +179,18 @@ export default async function handleSanctions(interaction: ModalSubmitInteractio
                     embeds: [
                         createEmbed(
                             "🚨 경고 추가",
-                            `${userMention(targetId)} 님에게 1회 경고를 추가했습니다.\n경고가 5회 이상일 경우 서버에서 추방될 수 있습니다.`,
-                            Colors.Red
+                            Colors.Red,
+                            `${userMention(targetId)} 님에게 1회 경고를 추가했습니다.\n경고가 5회 이상일 경우 서버에서 추방될 수 있습니다.`
                         )
-                    ]
+                    ],
+                    ephemeral: true
                 });
                 break;
             case 'decreaseWarn':
                 await decreaseWarning(targetId);
                 interaction.reply({
-                    embeds: [createEmbed("✅ 경고 차감", `${userMention(targetId)} 님의 경고를 1회 차감했습니다.`, Colors.Green)]
+                    embeds: [createEmbed("✅ 경고 차감", Colors.Green, `${userMention(targetId)} 님의 경고를 1회 차감했습니다.`)],
+                    ephemeral: true
                 });
                 break;
             default:
@@ -152,7 +198,7 @@ export default async function handleSanctions(interaction: ModalSubmitInteractio
                 return;
         }
 
-        // 로그 전송
+        // Send a log to the log channel
         await sendLog(channelId, embed);
     } catch (error) {
         logger.error(`Error handling sanction (${type}): ${error}`);
