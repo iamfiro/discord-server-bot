@@ -1,4 +1,4 @@
-import { Message, TextChannel } from "discord.js";
+import { Colors, EmbedBuilder, Message, TextChannel, userMention } from "discord.js";
 import Logger from "../lib/logger";
 import prisma from "../lib/prisma";
 
@@ -36,7 +36,13 @@ async function handle(message: Message) {
             const channel = message.client.channels.cache.get(NOTIFY_CHANNEL_ID) as TextChannel;
             if (channel) {
                 // 알림 채널에 레벨 업 메시지를 보냅니다.
-                channel.send(`🎉 ${message.author.username} 님이 ${newLevel} 레벨로 올랐습니다!`);
+                channel.send({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setDescription(`🎉 ${userMention(message.author.id)} 님이 ${newLevel} 레벨로 올랐습니다!`)
+                            .setColor(Colors.Green)
+                    ]
+                })
             } else {
                 logger.error('알림 채널을 찾을 수 없습니다.');
             }
