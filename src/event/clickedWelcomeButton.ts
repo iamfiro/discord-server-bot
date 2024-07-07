@@ -31,7 +31,7 @@ async function handle(interaction: ButtonInteraction) {
 
     try {
         await addRoleToMember(member);
-        await createUserInDatabase(member);
+        await upsertUserInDatabase(member);
 
         interaction.reply({
             content: "역할이 추가되었습니다.",
@@ -59,9 +59,15 @@ async function addRoleToMember(member: GuildMember) {
  * Creates a user in the database.
  * @param {GuildMember} member - The guild member to be added to the database.
  */
-async function createUserInDatabase(member: GuildMember) {
-    await prisma.user.create({
-        data: {
+async function upsertUserInDatabase(member: GuildMember) {
+    await prisma.user.upsert({
+        where: {
+            userId: member.id,
+        },
+        update: {
+            lastActivity: new Date(),
+        },
+        create: {
             userId: member.id,
             userName: member.user.username,
         }
