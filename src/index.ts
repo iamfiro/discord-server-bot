@@ -149,9 +149,18 @@ const handleModalSubmit = (interaction: ModalSubmitInteraction) => {
     }
 };
 
+/**
+ * Schedule a cron job to run the handleAfkUser function every day at midnight
+ */
 const handleAfkJob = new CronJob("0 0 * * *", async () => {
-    handleAfkUser()
-})
+    logger.info('Starting handleAfkUser cron job...');
+    try {
+        await handleAfkUser();
+        logger.info('Completed handleAfkUser cron job.');
+    } catch (error) {
+        logger.error(`Error during handleAfkUser cron job: ${error}`);
+    }
+});
 
 ;(async () => {
     try {
